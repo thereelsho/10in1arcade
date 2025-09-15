@@ -1,1 +1,125 @@
-<!DOCTYPE html><html><head><meta charset='UTF-8'><title>TODO</title></head><body><h1>TODO game here</h1></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"><title>Space Invaders+</title>
+<style>
+  body{background:#000;color:#fff;text-align:center;font-family:Arial;margin:0;padding:10px}
+  canvas{background:#111;display:block;margin:10px auto;border:2px solid #555}
+  .hud{margin:6px 0}
+  a.btn{color:#ff2d75;text-decoration:none}
+</style>
+</head>
+<body>
+<h1>Space Invaders+</h1>
+<div class="hud">Lives: <span id="lives">3</span> · Score: <span id="score">0</span></div>
+<canvas id="cv" width="720" height="480"></canvas>
+<div><a class="btn" href="../index.html">⟵ Back to Arcade</a></div>
+<script>
+const c=cv, ctx=c.getContext('2d');
+
+class Player{constructor(){this.w=36;this.h=16;this.x=c.width/2-this.w/2;this.y=c.height-40;this.speed=5;}}
+class Inv{constructor(x,y){this.x=x;this.y=y;this.w=24;this.h=16;this.alive=true;}}
+class Bullet{constructor(x,y,dy,color){this.x=x;this.y=y;this.dy=dy;this.color=color||'#fff';this.alive=true;}}
+class Shield{constructor(x,y){this.x=x;this.y=y;this.w=70;this.h=22;this.hp=10;}}
+
+let player=new Player(), keys={}, inv=[], bullets=[], sh=[], dir=1, stepDown=false, tick=0, lives=3, score=0;
+
+function wave(){
+  inv=[];
+  const rows=4, cols=11, offX=60, offY=60, gapX=48, gapY=34;
+  for(let r=0;r<rows;r++)for(let c2=0;c2<cols;c2++) inv.push(new Inv(offX+c2*gapX, offY+r*gapY));
+  dir=1; stepDown=false;
+  // shields
+  sh=[new Shield(120,c.height-120), new Shield(320,c.height-120), new Shield(520,c.height-120)];
+}
+function drawPlayer(){ctx.fillStyle='lime'; ctx.fillRect(player.x,player.y,player.w,player.h);}
+function drawInv(i){ctx.fillStyle='red'; ctx.fillRect(i.x,i.y,i.w,i.h);}
+function drawShield(s){ctx.fillStyle=`hsl(${s.hp*10},70%,50%)`; ctx.fillRect(s.x,s.y,s.w,s.h);}
+function drawBul(b){ctx.fillStyle=b.color; ctx.fillRect(b.x,b.y,3,10);}
+
+function update(){
+  // input
+  if(keys['ArrowLeft']) player.x=Math.max(0,player.x-player.speed);
+  if(keys['ArrowRight']) player.x=Math.min(c.width-player.w,player.x+player.speed);
+
+  // invaders movement (classic march)
+  tick++;
+  if(tick%3===0){
+    let hitEdge=false;
+    inv.forEach(i=>{ i.x += dir*4; if(i.x+i.w>c.width-10 || i.x<10) hitEdge=true; });
+    if(hitEdge){ dir*=-1; inv.forEach(i=> i.y += 12); }
+  }
+
+  // random enemy fire
+  if(Math.random()<0.03){
+    const front = inv.filter(i=>i.alive);
+    if(front.length){
+      const i=front[(Math.random()*front.length)|0];
+      bullets.push(new Bullet(i.x+i.w/2, i.y+16, 5, '#ff8080'));
+    }
+  }
+
+  // bullets
+  bullets.forEach(b=>{
+    b.y += b.dy; 
+    if(b.y<0 || b.y>c.height) b.alive=false;
+  });
+  bullets = bullets.filter(b=>b.alive);
+
+  // collisions: player shot vs invaders
+  bullets.forEach(b=>{
+    if(b.dy<0){
+      inv.forEach(i=>{
+        if(i.alive && b.x>i.x && b.x<i.x+i.w && b.y>i.y && b.y<i.y+i.h){
+          i.alive=false; b.alive=false; score+=10;
+        }
+      });
+    }
+  });
+
+  // enemy bullets vs player
+  bullets.forEach(b=>{
+    if(b.dy>0 && b.x>player.x && b.x<player.x+player.w && b.y>player.y && b.y<player.y+player.h){
+      b.alive=false; lives--; document.getElementById('lives').textContent=lives;
+      player=new Player();
+      if(lives<=0){ alert('Game Over! Score: '+score); score=0; lives=3; wave(); }
+    }
+  });
+
+  // bullets vs shields + invaders vs shields
+  bullets.forEach(b=>{
+    sh.forEach(s=>{
+      if(b.x>s.x && b.x<s.x+s.w && b.y>s.y && b.y<s.y+s.h){ b.alive=false; s.hp--; }
+    });
+  });
+  sh = sh.filter(s=> s.hp>0);
+
+  // loss if invaders reach bottom
+  if(inv.some(i=>i.alive && i.y + i.h >= player.y)){
+    alert('They reached you!'); score=0; lives=3; wave();
+  }
+
+  // win → next wave
+  if(inv.every(i=>!i.alive)){ wave(); }
+
+  document.getElementById('score').textContent=score;
+}
+function draw(){
+  ctx.clearRect(0,0,c.width,c.height);
+  drawPlayer();
+  inv.forEach(i=>{ if(i.alive) drawInv(i); });
+  sh.forEach(drawShield);
+  bullets.forEach(drawBul);
+}
+function loop(){ update(); draw(); requestAnimationFrame(loop); }
+
+document.addEventListener('keydown',e=>{
+  keys[e.key]=true;
+  if(e.key===' ') bullets.push(new Bullet(player.x+player.w/2, player.y-4, -8, '#fff'));
+});
+document.addEventListener('keyup',e=>{ keys[e.key]=false; });
+
+wave(); loop();
+</script>
+</body>
+</html>
