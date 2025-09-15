@@ -142,16 +142,28 @@ const raw = [
   let modeTimer = 0;
   let inScatter = true;
 
-  // ======= INPUT =======
-  document.addEventListener('keydown', e => {
-    if(mode==='ready'){ startRound(); return; }
-    if(mode!=='play' && mode!=='fright') return;
-    if(e.key==='ArrowUp')    pac.nextDir = {dx:0,dy:-1};
-    if(e.key==='ArrowDown')  pac.nextDir = {dx:0,dy:1};
-    if(e.key==='ArrowLeft')  pac.nextDir = {dx:-1,dy:0};
-    if(e.key==='ArrowRight') pac.nextDir = {dx:1,dy:0};
-  });
+ // ======= INPUT =======
+document.addEventListener("keydown", e => {
+  // ⛔ stop page from scrolling with arrow keys
+  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+    e.preventDefault();
+  }
 
+  // start game with intro sound
+  if(mode==="ready"){ 
+    play(S.intro); 
+    setTimeout(startRound,1500); 
+    return; 
+  }
+
+  // only move during active play
+  if(mode!=="play" && mode!=="fright") return;
+
+  if(e.key==="ArrowUp")    pac.nextDir={dx:0,dy:-1};
+  if(e.key==="ArrowDown")  pac.nextDir={dx:0,dy:1};
+  if(e.key==="ArrowLeft")  pac.nextDir={dx:-1,dy:0};
+  if(e.key==="ArrowRight") pac.nextDir={dx:1,dy:0};
+});
   // ======= HELPERS =======
   function isWall(x,y){
     if(y<0||y>=ROWS||x<0||x>=COLS) return true;
