@@ -36,7 +36,7 @@
 
   <script>
   // ======= CONFIG =======
-  const tile = 28;
+  const tile = 24;
   const speedPac = 0.11;
   const speedGhost = 0.10;
   const speedFright = 0.08;
@@ -47,7 +47,7 @@
   const powerScore  = 50;
   const eatGhostScore = 200;
 
-  // ======= SOUND STUBS =======
+  // ======= SOUND STUBS (replace with real files later) =======
   const S={}; const play=()=>{}; const playWaka=()=>{};
 
   // ======= CANVAS & HUD =======
@@ -112,7 +112,7 @@
     clyde:{x:2,y:ROWS-2},
   };
   function makeGhost(name,x,y,color){
-    return {name,x,y,dx:0,dy:0,color,edible:false,eyes:false,speed:speedGhost,scatterTarget:corners[name],flash:false};
+    return {name,x,y,dx:0,dy:0,color,edible:false,eyes:false,speed:speedGhost,scatterTarget:corners[name]};
   }
   let ghosts=[]; resetEntities();
 
@@ -149,7 +149,7 @@
     ghosts.forEach(g=>{if(!g.eyes){g.edible=true; g.speed=speedFright;}});
     mode='fright';
     setTimeout(()=>{
-      ghosts.forEach(g=>{if(!g.eyes){g.edible=false; g.speed=speedGhost; g.flash=false;}});
+      ghosts.forEach(g=>{if(!g.eyes){g.edible=false; g.speed=speedGhost;}});
       if(mode!=='dying'&&mode!=='gameover'&&mode!=='levelup') mode='play';
     },frightDuration);
   }
@@ -157,80 +157,33 @@
   function pelletsRemaining(){let n=0;for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){if(raw[y][x]===0||raw[y][x]===3)n++;}return n;}
 
   // ======= UPDATE PAC =======
-  function updatePac(dt) {
-  // Handle queued turn when Pac-Man is aligned to grid
-  if (gridAlign(pac.x) && gridAlign(pac.y) && pac.nextDir) {
-    const nx = Math.round(pac.x) + pac.nextDir.dx;
-    const ny = Math.round(pac.y) + pac.nextDir.dy;
-    // Only allow if not wall or gate
-    if (!isWall(nx, ny) && !isGate(nx, ny)) {
-      pac.dx = pac.nextDir.dx;
-      pac.dy = pac.nextDir.dy;
-      pac.nextDir = null;
-    }
-  }
-
-  // Proposed movement
-  let nx = pac.x + pac.dx * pac.speed * (dt / 16);
-  let ny = pac.y + pac.dy * pac.speed * (dt / 16);
-
-  // Tunnel wrap
-  if (nx < 0) nx = COLS - 1;
-  if (nx > COLS - 1) nx = 0;
-
-  // Only move if next spot is valid
-  if (!isWall(Math.round(nx), Math.round(ny)) &&
-      !isGate(Math.round(nx), Math.round(ny))) {
-    pac.x = nx;
-    pac.y = ny;
-  }
-  // ❌ Don’t reset dx/dy here — that’s what caused “sticking” before
-
-  // Eat pellets
-  const gx = Math.round(pac.x), gy = Math.round(pac.y);
-  if (raw[gy] && raw[gy][gx] === 0) {
-    raw[gy][gx] = 2;
-    score += pelletScore;
-    scoreEl.textContent = score;
-    play(S.waka);
-  } else if (raw[gy] && raw[gy][gx] === 3) {
-    raw[gy][gx] = 2;
-    score += powerScore;
-    scoreEl.textContent = score;
-    play(S.power);
-    frighten();
-  }
-
-  // Mouth animation
-  if (pac.dx !== 0 || pac.dy !== 0) {
-    if (pac.open) {
-      pac.mouth += 0.05;
-      if (pac.mouth >= 0.3) pac.open = false;
-    } else {
-      pac.mouth -= 0.05;
-      if (pac.mouth <= 0) pac.open = true;
-    }
-  }
-
-  // Level complete
-  if (pelletsRemaining() === 0) {
-    mode = 'levelup';
-    overlayText.textContent = 'LEVEL UP!';
-    setTimeout(() => {
-      level++;
-      for (let y = 0; y < ROWS; y++) {
-        for (let x = 0; x < COLS; x++) {
-          if (raw[y][x] === 2 && !isGate(x, y) && !isWall(x, y)) {
-            raw[y][x] = 0;
-          }
-        }
+  function updatePac(dt){
+    // Handle queued turns
+    if(gridAlign(pac.x)&&gridAlign(pac.y)&&pac.nextDir){
+      const nx=Math.round(pac.x)+pac.nextDir.dx;
+      const ny=Math.round(pac.y)+pac.nextDir.dy;
+      if(!isWall(nx,ny)&&!isGate(nx,ny)){
+        pac.dx=pac.nextDir.dx;
+        pac.dy=pac.nextDir.dy;
+        pac.nextDir=null;
       }
-      resetEntities();
-      overlayText.textContent = 'READY!';
-      mode = 'ready';
-    }, 1500);
+    }
+    // Proposed movement
+    let nx=pac.x+pac.dx*pac.speed*(dt/16);
+    let ny=pac.y+pac.dy*pac.speed*(dt/16);
+    if(nx<0)nx=COLS-1;if(nx>COLS-1)nx=0;
+    if(!isWall(Math.round(nx),Math.round(ny))&&!isGate(Math.round(nx),Math.round(ny))){
+      pac.x=nx; pac.y=ny;
+    }
+    // Pellets
+    const gx=Math.round(pac.x),gy=Math.round(pac.y);
+    if(raw[gy]&&raw[gy][gx]===0){raw[gy][gx]=2;score+=pelletScore;scoreEl.textContent=score;playWaka();}
+    else if(raw[gy]&&raw[gy][gx]===3){raw[gy][gx]=2;score+=powerScore;scoreEl.textContent=score;frighten();}
+    // Mouth animation
+    if(pac.dx||pac.dy){if(pac.open){pac.mouth+=0.05;if(pac.mouth>=0.3)pac.open=false;}else{pac.mouth-=0.05;if(pac.mouth<=0)pac.open=true;}}
+    // Level up
+    if(pelletsRemaining()===0){mode='levelup';overlayText.textContent='LEVEL UP!';setTimeout(()=>{level++;for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){if(raw[y][x]===2&&!isGate(x,y)&&!isWall(x,y))raw[y][x]=0;}resetEntities();overlayText.textContent='READY!';mode='ready';},1500);}
   }
-}
 
   // ======= GHOSTS =======
   function ghostTargets(g){
@@ -254,15 +207,15 @@
     let nx=g.x+g.dx*g.speed*(dt/16),ny=g.y+g.dy*g.speed*(dt/16);
     if(nx<0)nx=COLS-1;if(nx>COLS-1)nx=0;
     if(!isWall(Math.round(nx),Math.round(ny))&&(!isGate(Math.round(nx),Math.round(ny))||g.eyes)){g.x=nx;g.y=ny;}
-    if(g.eyes&&Math.round(g.x)===14&&Math.round(g.y)===13){g.eyes=false;g.edible=false;g.speed=speedGhost;g.dx=0;g.dy=0;g.flash=false;}
+    if(g.eyes&&Math.round(g.x)===14&&Math.round(g.y)===13){g.eyes=false;g.edible=false;g.speed=speedGhost;g.dx=0;g.dy=0;}
   }
 
   function handleCollisions(){
     ghosts.forEach(g=>{
       const d=Math.hypot(g.x-pac.x,g.y-pac.y);
       if(d<0.5){
-        if(g.edible&&!g.eyes){score+=eatGhostScore;scoreEl.textContent=score;play(S.eat);g.edible=false;g.eyes=true;g.speed=speedGhost*1.2;}
-        else if(!g.eyes){lives--;livesEl.textContent=lives;play(S.death);mode='dying';overlayText.textContent='OUCH!';setTimeout(()=>{if(lives<=0){if(score>high){localStorage.pacmanHigh=score;high=score;}overlayText.textContent='GAME OVER';mode='gameover';setTimeout(()=>location.reload(),1500);}else{resetEntities();overlayText.textContent='READY!';mode='ready';}},900);}
+        if(g.edible&&!g.eyes){score+=eatGhostScore;scoreEl.textContent=score;g.edible=false;g.eyes=true;g.speed=speedGhost*1.2;}
+        else if(!g.eyes){lives--;livesEl.textContent=lives;mode='dying';overlayText.textContent='OUCH!';setTimeout(()=>{if(lives<=0){if(score>high){localStorage.pacmanHigh=score;high=score;}overlayText.textContent='GAME OVER';mode='gameover';setTimeout(()=>location.reload(),1500);}else{resetEntities();overlayText.textContent='READY!';mode='ready';}},900);}
       }
     });
   }
@@ -270,7 +223,7 @@
   // ======= DRAW =======
   function drawMaze(){for(let y=0;y<ROWS;y++){for(let x=0;x<COLS;x++){const v=raw[y][x];if(v===1){ctx.fillStyle="#0b21ff";ctx.fillRect(x*tile,y*tile,tile,tile);}else if(v===0){ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(x*tile+tile/2,y*tile+tile/2,3,0,Math.PI*2);ctx.fill();}else if(v===3){ctx.fillStyle="#ff0";ctx.beginPath();ctx.arc(x*tile+tile/2,y*tile+tile/2,6,0,Math.PI*2);ctx.fill();}else if(v===5){ctx.fillStyle="#fff";ctx.fillRect(x*tile+4,y*tile+tile/2-1,tile-8,2);}}}}
   function drawPac(){const {cx,cy}=centerOf(pac.x,pac.y);const ang=Math.atan2(pac.dy,pac.dx)||0;const m=pac.mouth;ctx.fillStyle="yellow";ctx.beginPath();ctx.arc(cx,cy,tile/2-2,ang+m,ang+2*Math.PI-m);ctx.lineTo(cx,cy);ctx.fill();}
-  function drawGhost(g){const {cx,cy}=centerOf(g.x,g.y);const bodyColor=g.eyes?"#fff":(g.edible?(g.flash?"white":"blue"):g.color);ctx.fillStyle=bodyColor;ctx.beginPath();ctx.arc(cx,cy,tile/2-2,Math.PI,0);ctx.lineTo(cx+tile/2-2,cy+tile/2-2);ctx.lineTo(cx-tile/2+2,cy+tile/2-2);ctx.closePath();ctx.fill();ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(cx-5,cy,5,0,Math.PI*2);ctx.arc(cx+5,cy,5,0,Math.PI*2);ctx.fill();ctx.fillStyle="#000";const ex=(pac.x-g.x),ey=(pac.y-g.y),len=Math.hypot(ex,ey)||1,ox=(ex/len)*2,oy=(ey/len)*2;ctx.beginPath();ctx.arc(cx-5+ox,cy+oy,2,0,Math.PI*2);ctx.arc(cx+5+ox,cy+oy,2,0,Math.PI*2);ctx.fill();}
+  function drawGhost(g){const {cx,cy}=centerOf(g.x,g.y);ctx.fillStyle=g.eyes?"#fff":(g.edible?"blue":g.color);ctx.beginPath();ctx.arc(cx,cy,tile/2-2,Math.PI,0);ctx.lineTo(cx+tile/2-2,cy+tile/2-2);ctx.lineTo(cx-tile/2+2,cy+tile/2-2);ctx.closePath();ctx.fill();ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(cx-5,cy,5,0,Math.PI*2);ctx.arc(cx+5,cy,5,0,Math.PI*2);ctx.fill();ctx.fillStyle="#000";const ex=(pac.x-g.x),ey=(pac.y-g.y),len=Math.hypot(ex,ey)||1,ox=(ex/len)*2,oy=(ey/len)*2;ctx.beginPath();ctx.arc(cx-5+ox,cy+oy,2,0,Math.PI*2);ctx.arc(cx+5+ox,cy+oy,2,0,Math.PI*2);ctx.fill();}
 
   // ======= MAIN LOOP =======
   let lastTs=performance.now();
@@ -291,7 +244,4 @@
   livesEl.textContent=lives;
   scoreEl.textContent=score;
   overlayText.textContent='READY! (Press Arrow)';
-  requestAnimationFrame(frame);
-  </script>
-</body>
-</html>
+  request
