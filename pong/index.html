@@ -1,0 +1,18 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pong+</title>
+<style>body{background:#000;color:#fff;text-align:center;font-family:Arial;margin:0;padding:10px}canvas{background:#111;display:block;margin:10px auto}.info{margin:6px 0}</style></head><body>
+<h1>Pong+</h1><div class="info">Left: ↑/↓ · Right: AI · First to 10</div><canvas id="pong" width="600" height="400"></canvas>
+<div style="text-align:center;margin-top:10px"><a href="../index.html" style="display:inline-block;padding:8px 14px;background:#222;color:#eee;text-decoration:none;border-radius:6px">⟵ Back to Arcade</a></div>
+<script>
+const c=document.getElementById('pong'),x=c.getContext('2d');const PH=80,PW=10;
+let L={x:10,y:c.height/2-PH/2,dy:0},R={x:c.width-PW-10,y:c.height/2-PH/2,dy:0};
+let ball={x:c.width/2,y:c.height/2,dx:4,dy:3,r:8},LS=0,RS=0;
+function rect(a,b,w,h){x.fillStyle='white';x.fillRect(a,b,w,h);}function circle(a,b,r){x.beginPath();x.arc(a,b,r,0,Math.PI*2);x.fillStyle='white';x.fill();}
+function text(t,a,b){x.fillStyle='white';x.font='24px Arial';x.fillText(t,a,b);}function reset(){ball={x:c.width/2,y:c.height/2,dx:(Math.random()>0.5?4:-4),dy:(Math.random()>0.5?3:-3),r:8};}
+function step(){L.y+=L.dy;L.y=Math.max(0,Math.min(c.height-PH,L.y));const target=ball.y-PH/2;R.y+=(target-R.y)*0.05;ball.x+=ball.dx;ball.y+=ball.dy;
+if(ball.y<0||ball.y>c.height)ball.dy*=-1;if(ball.x-ball.r<L.x+PW&&ball.y>L.y&&ball.y<L.y+PH){ball.dx*=-1;ball.x=L.x+PW+ball.r;}
+if(ball.x+ball.r>R.x&&ball.y>R.y&&ball.y<R.y+PH){ball.dx*=-1;ball.x=R.x-ball.r;}if(ball.x<0){RS++;reset();}if(ball.x>c.width){LS++;reset();}}
+function draw(){x.clearRect(0,0,c.width,c.height);rect(L.x,L.y,PW,PH);rect(R.x,R.y,PW,PH);circle(ball.x,ball.y,ball.r);text(LS,150,30);text(RS,450,30);}
+function loop(){step();draw();if(LS>=10||RS>=10){alert((LS>RS?'Left':'Right')+' wins!');LS=0;RS=0;}requestAnimationFrame(loop);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowUp')L.dy=-6;else if(e.key==='ArrowDown')L.dy=6;});document.addEventListener('keyup',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown')L.dy=0;});
+reset();loop();
+</script></body></html>
