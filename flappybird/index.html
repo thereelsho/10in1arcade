@@ -1,1 +1,81 @@
-<!DOCTYPE html><html><head><meta charset='UTF-8'><title>TODO</title></head><body><h1>TODO game here</h1></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"><title>Flappy Bird+</title>
+<style>
+  body{background:#000;color:#fff;text-align:center;font-family:Arial;margin:0;padding:10px}
+  canvas{background:#70c5ce;display:block;margin:10px auto;border:2px solid #555}
+  .hud{margin:6px 0}
+  a.btn{color:#ff2d75;text-decoration:none}
+</style>
+</head>
+<body>
+<h1>Flappy Bird+</h1>
+<div class="hud">Score: <span id="score">0</span> · High: <span id="high">0</span></div>
+<canvas id="cv" width="340" height="520"></canvas>
+<div><a class="btn" href="#" id="rst">Restart</a> · <a class="btn" href="../index.html">⟵ Back to Arcade</a></div>
+<script>
+const c=cv, ctx=c.getContext('2d');
+let bird, pipes, frame, score, running=true;
+
+function start(){
+  bird={x:60,y:c.height/2,w:22,h:22,vy:0,g:0.6,flap:-8};
+  pipes=[]; frame=0; score=0; running=true;
+}
+function drawBird(){ctx.fillStyle='yellow';ctx.fillRect(bird.x,bird.y,bird.w,bird.h);}
+function spawnPipe(){
+  const gap=120;
+  const top = 40 + Math.random()* (c.height-200);
+  const bottom = c.height - (top+gap);
+  pipes.push({x:c.width,top,bottom,w:46,scored:false});
+}
+function drawPipes(){
+  ctx.fillStyle='green';
+  pipes.forEach(p=>{
+    ctx.fillRect(p.x,0,p.w,p.top);
+    ctx.fillRect(p.x,c.height-p.bottom,p.w,p.bottom);
+  });
+}
+function update(){
+  if(!running) return;
+  bird.vy += bird.g; bird.y += bird.vy;
+  if(frame%90===0) spawnPipe();
+  pipes.forEach(p=>{ p.x -= 2.5; });
+
+  // scoring + cleanup
+  pipes.forEach(p=>{
+    if(!p.scored && p.x + p.w < bird.x){ score++; p.scored=true; }
+  });
+  pipes = pipes.filter(p=> p.x + p.w > 0);
+
+  // collisions
+  for (const p of pipes){
+    const hitX = bird.x + bird.w > p.x && bird.x < p.x+p.w;
+    const hitY = bird.y < p.top || (bird.y+bird.h) > (c.height - p.bottom);
+    if (hitX && hitY){ gameOver(); }
+  }
+  if(bird.y<0) bird.y=0;
+  if(bird.y+bird.h>c.height) gameOver();
+
+  document.getElementById('score').textContent=score;
+  document.getElementById('high').textContent=localStorage.fbHigh||0;
+}
+function draw(){
+  ctx.clearRect(0,0,c.width,c.height);
+  drawBird(); drawPipes();
+}
+function loop(){ update(); draw(); frame++; requestAnimationFrame(loop); }
+function flap(){ if(!running) return; bird.vy = bird.flap; }
+function gameOver(){
+  running=false;
+  const hi = Math.max(+localStorage.fbHigh||0, score);
+  localStorage.fbHigh = hi;
+  alert('Game Over! Score: '+score+' · High: '+hi);
+}
+document.addEventListener('keydown',e=>{ if(e.code==='Space') flap(); });
+document.getElementById('rst').onclick=(e)=>{e.preventDefault(); start();};
+
+start(); loop();
+</script>
+</body>
+</html>
