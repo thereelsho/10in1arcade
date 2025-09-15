@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Snake+</title>
+  <style>
+    body{background:#000;color:#fff;text-align:center;font-family:Arial;margin:0;padding:10px}
+    canvas{background:#111;display:block;margin:10px auto}
+    .info{margin:6px 0}
+    .btn{display:inline-block;margin-top:8px;padding:6px 10px;background:#222;color:#eee;text-decoration:none;border-radius:6px}
+  </style>
+</head>
+<body>
+  <h1>Snake+</h1>
+  <div class="info">Score: <span id="score">0</span> · High: <span id="high">0</span></div>
+  <canvas id="game" width="400" height="400"></canvas>
+  <a class="btn" href="#" onclick="init(true);return false;">Restart</a>
+  <div style="text-align:center;margin-top:10px">
+    <a href="../index.html" class="btn">⟵ Back to Arcade</a>
+  </div>
+  <script>
+    const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+    const grid=20; let snake=[{x:160,y:160}]; let dx=grid,dy=0; let food; let score=0; let speed=120; let timer=null;
+    function randFood(){return{x:Math.floor(Math.random()*canvas.width/grid)*grid,y:Math.floor(Math.random()*canvas.height/grid)*grid}}
+    function drawSnake(){ctx.fillStyle='lime'; snake.forEach(p=>ctx.fillRect(p.x,p.y,grid,grid));}
+    function drawFood(){ctx.fillStyle='red'; ctx.fillRect(food.x,food.y,grid,grid);}
+    function move(){const head={x:snake[0].x+dx,y:snake[0].y+dy}; snake.unshift(head); if(head.x===food.x && head.y===food.y){score++; food=randFood(); if(speed>60)speed-=5; loop();} else snake.pop();}
+    function over(){for(let i=4;i<snake.length;i++) if(snake[i].x===snake[0].x && snake[i].y===snake[0].y)return true; return snake[0].x<0||snake[0].y<0||snake[0].x>=canvas.width||snake[0].y>=canvas.height;}
+    function draw(){ctx.clearRect(0,0,canvas.width,canvas.height); move(); drawSnake(); drawFood();}
+    function loop(){if(timer)clearInterval(timer); timer=setInterval(()=>{ if(over()){let h=Math.max(+localStorage.snakeHigh||0,score); localStorage.snakeHigh=h; alert('Game Over! Score: '+score+' High: '+h); init(true); return;} draw(); document.getElementById('score').textContent=score; document.getElementById('high').textContent=localStorage.snakeHigh||0; }, speed);}
+    document.addEventListener('keydown',e=>{if(e.key==='ArrowUp'&&dy===0){dx=0;dy=-grid} else if(e.key==='ArrowDown'&&dy===0){dx=0;dy=grid} else if(e.key==='ArrowLeft'&&dx===0){dx=-grid;dy=0} else if(e.key==='ArrowRight'&&dx===0){dx=grid;dy=0}});
+    function init(reset){snake=[{x:160,y:160}];dx=grid;dy=0;food=randFood();score=0;speed=120; if(!localStorage.snakeHigh)localStorage.snakeHigh=0; loop();}
+    init();
+  </script>
+</body>
+</html>
