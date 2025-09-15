@@ -169,69 +169,44 @@
   }
 
   function startRound(){ mode='play'; overlayText.textContent=''; modeTimer = performance.now(); inScatter = true; }
+
     // ======= DRAW =======
-function drawMaze(){
-  for(let y=0;y<ROWS;y++){
-    for(let x=0;x<COLS;x++){
-      const v=raw[y][x];
-      if(v===1){
-        // wall
-        ctx.fillStyle = "#0b21ff";
-        ctx.fillRect(x*tile,y*tile,tile,tile);
-        ctx.fillStyle = "rgba(255,255,255,0.08)";
-        ctx.fillRect(x*tile,y*tile,tile,3);
-        ctx.fillRect(x*tile,y*tile,3,tile);
-      }else if(v===0){
-        // pellet
-        ctx.fillStyle="#fff";
-        ctx.beginPath(); ctx.arc(x*tile+tile/2,y*tile+tile/2,3,0,Math.PI*2); ctx.fill();
-      }else if(v===3){
-        // power pellet
-        ctx.fillStyle="#ff0";
-        ctx.beginPath(); ctx.arc(x*tile+tile/2,y*tile+tile/2,6,0,Math.PI*2); ctx.fill();
-      }else if(v===5){
-        // gate
-        ctx.fillStyle="#fff";
-        ctx.fillRect(x*tile+4,y*tile+tile/2-1,tile-8,2);
-      }
+function drawMaze(){ ... }
+
+function drawPac(){ ... }
+
+function drawGhost(g){ ... }
+
+// ======= MAIN LOOP =======
+let lastTs = performance.now();
+function frame(ts){
+  const dt = Math.min(20, ts - lastTs);
+  lastTs = ts;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawMaze();
+
+  if(mode==='ready'){
+    overlayText.textContent = 'READY! (Press Arrow)';
+  } else if(mode==='play' || mode==='fright'){
+    updatePac(dt);
+
+    if(mode==='play'){
+      const elapsed = ts - modeTimer;
+      if(inScatter && elapsed > scatterDur){ inScatter = false; modeTimer = ts; }
+      else if(!inScatter && elapsed > chaseDur){ inScatter = true; modeTimer = ts; }
     }
+
+    ghosts.forEach(g => updateGhost(g, dt));
+    handleCollisions();
   }
-}
 
-function drawPac(){
-  const {cx,cy} = centerOf(pac.x, pac.y);
-  const ang = Math.atan2(pac.dy,pac.dx) || 0;
-  const m = pac.mouth;
-  ctx.fillStyle="yellow";
-  ctx.beginPath();
-  ctx.arc(cx,cy,tile/2-2, ang+m, ang+2*Math.PI-m);
-  ctx.lineTo(cx,cy); ctx.fill();
-}
+  ghosts.forEach(g => drawGhost(g));
+  drawPac();
 
-function drawGhost(g){
-  const {cx,cy} = centerOf(g.x,g.y);
-  ctx.fillStyle = g.eyes ? "#fff" : (g.edible ? "blue" : g.color);
-  ctx.beginPath();
-  ctx.arc(cx, cy, tile/2-2, Math.PI, 0);
-  ctx.lineTo(cx+tile/2-2, cy+tile/2-2);
-  ctx.lineTo(cx-tile/2+2, cy+tile/2-2);
-  ctx.closePath();
-  ctx.fill();
+  highEl.textContent = Math.max(high, score);
 
-  ctx.fillStyle = "#fff";
-  if(g.eyes){
-    ctx.beginPath(); ctx.arc(cx-5,cy,5,0,Math.PI*2);
-    ctx.arc(cx+5,cy,5,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle="#000";
-    ctx.beginPath(); ctx.arc(cx-5,cy,2,0,Math.PI*2);
-    ctx.arc(cx+5,cy,2,0,Math.PI*2); ctx.fill();
-  }else{
-    const ex = (pac.x - g.x), ey = (pac.y - g.y);
-    const len = Math.hypot(ex,ey)||1, ox = (ex/len)*3, oy=(ey/len)*3;
-    ctx.beginPath(); ctx.arc(cx-5,cy,5,0,Math.PI*2); ctx.arc(cx+5,cy,5,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle="#000";
-    ctx.beginPath(); ctx.arc(cx-5+ox,cy+oy,2,0,Math.PI*2); ctx.arc(cx+5+ox,cy+oy,2,0,Math.PI*2); ctx.fill();
-  }
+  requestAnimationFrame(frame);
 }
 
 
