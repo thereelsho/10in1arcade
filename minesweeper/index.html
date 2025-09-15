@@ -1,1 +1,100 @@
-<!DOCTYPE html><html><head><meta charset='UTF-8'><title>TODO</title></head><body><h1>TODO game here</h1></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"><title>Minesweeper+</title>
+<style>
+  body{background:#000;color:#fff;text-align:center;font-family:Arial;margin:0;padding:10px}
+  table{margin:10px auto;border-collapse:collapse}
+  td{width:30px;height:30px;text-align:center;background:#333;color:#fff;border:1px solid #555;cursor:pointer;font-weight:bold}
+  td.revealed{background:#222;cursor:default}
+  td.mine{background:#b00}
+  .bar{margin:8px 0}
+  a.btn{color:#ff2d75;text-decoration:none}
+</style>
+</head>
+<body>
+<h1>Minesweeper+</h1>
+<div class="bar">
+  Difficulty
+  <select id="diff">
+    <option value="9,9,10">Easy 9×9 (10)</option>
+    <option value="16,16,40">Medium 16×16 (40)</option>
+    <option value="16,30,99">Hard 16×30 (99)</option>
+  </select>
+  <button id="new">New Game</button>
+  · Time: <span id="time">0</span>s
+</div>
+<div id="board"></div>
+<div style="margin-top:10px"><a class="btn" href="../index.html">⟵ Back to Arcade</a></div>
+<script>
+let R=9,C=9,M=10,grid=[],revealed=[],first=true,timer=null,sec=0;
+
+function init(){
+  const [r,c,m]=document.getElementById('diff').value.split(',').map(Number);
+  R=r;C=c;M=m; first=true; sec=0; if(timer) clearInterval(timer); document.getElementById('time').textContent=0;
+  grid=Array(R).fill().map(()=>Array(C).fill(0));
+  revealed=Array(R).fill().map(()=>Array(C).fill(false));
+  draw();
+}
+function plant(sr,sc){
+  let placed=0;
+  while(placed<M){
+    let r=(Math.random()*R)|0, c=(Math.random()*C)|0;
+    if(grid[r][c]!== 'M' && (Math.abs(r-sr)>1 || Math.abs(c-sc)>1)){
+      grid[r][c]='M'; placed++;
+    }
+  }
+  for(let r=0;r<R;r++){
+    for(let c=0;c<C;c++){
+      if(grid[r][c]==='M') continue;
+      let cnt=0;
+      for(let dr=-1;dr<=1;dr++)
+        for(let dc=-1;dc<=1;dc++)
+          if(grid[r+dr] && grid[r+dr][c+dc]==='M') cnt++;
+      grid[r][c]=cnt;
+    }
+  }
+}
+function flood(r,c){
+  if(r<0||c<0||r>=R||c>=C||revealed[r][c]) return;
+  revealed[r][c]=true;
+  const td=document.getElementById(`cell-${r}-${c}`);
+  td.classList.add('revealed');
+  if(grid[r][c]===0){
+    td.textContent='';
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) flood(r+dr,c+dc);
+  } else if(grid[r][c]!=='M'){
+    td.textContent=grid[r][c];
+  }
+}
+function clickCell(r,c){
+  if(first){ plant(r,c); first=false; timer=setInterval(()=>{sec++; document.getElementById('time').textContent=sec;},1000); }
+  if(revealed[r][c]) return;
+  if(grid[r][c]==='M'){
+    document.getElementById(`cell-${r}-${c}`).classList.add('mine');
+    alert('BOOM!'); init(); return;
+  }
+  flood(r,c); checkWin();
+}
+function checkWin(){
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++)
+    if(grid[r][c]!=='M' && !revealed[r][c]) return;
+  alert('You win! Time: '+sec+'s'); init();
+}
+function draw(){
+  let html='<table>';
+  for(let r=0;r<R;r++){
+    html+='<tr>';
+    for(let c2=0;c2<C;c2++){
+      html+=`<td id="cell-${r}-${c2}" onclick="clickCell(${r},${c2})"></td>`;
+    }
+    html+='</tr>';
+  }
+  html+='</table>';
+  document.getElementById('board').innerHTML=html;
+}
+document.getElementById('new').onclick=()=>init();
+init();
+</script>
+</body>
+</html>
