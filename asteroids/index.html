@@ -1,1 +1,109 @@
-<!DOCTYPE html><html><head><meta charset='UTF-8'><title>TODO</title></head><body><h1>TODO game here</h1></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"><title>Asteroids+</title>
+<style>
+  body{background:#000;color:#fff;text-align:center;font-family:Arial;margin:0;padding:10px}
+  canvas{background:#111;display:block;margin:10px auto;border:2px solid #555}
+  .hud{margin:6px 0}
+  a.btn{color:#ff2d75;text-decoration:none}
+</style>
+</head>
+<body>
+<h1>Asteroids+</h1>
+<div class="hud">Lives: <span id="lives">3</span> · Score: <span id="score">0</span></div>
+<canvas id="cv" width="720" height="480"></canvas>
+<div><a class="btn" href="../index.html">⟵ Back to Arcade</a></div>
+<script>
+const c=cv, ctx=c.getContext('2d');
+
+class Ship{
+  constructor(){this.x=c.width/2;this.y=c.height/2;this.a=0;this.vx=0;this.vy=0;this.cool=0;}
+  draw(){ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.a);
+    ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-10,-8);ctx.lineTo(-5,0);ctx.lineTo(-10,8);ctx.closePath();ctx.strokeStyle='#fff';ctx.stroke();
+    ctx.restore();
+  }
+  update(){
+    this.x=(this.x+this.vx+c.width)%c.width; this.y=(this.y+this.vy+c.height)%c.height;
+    this.vx*=0.994; this.vy*=0.994; if(this.cool>0)this.cool--;
+  }
+  thrust(){ this.vx+=Math.cos(this.a)*0.18; this.vy+=Math.sin(this.a)*0.18; }
+  fire(){
+    if(this.cool>0) return null; this.cool=8;
+    return new Bullet(this.x, this.y, this.a);
+  }
+}
+class Ast{
+  constructor(x,y,r){this.x=x;this.y=y;this.r=r;const sp=1.2;this.vx=(Math.random()*2-1)*sp;this.vy=(Math.random()*2-1)*sp;}
+  draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.strokeStyle='#fff';ctx.stroke();}
+  update(){this.x=(this.x+this.vx+c.width)%c.width; this.y=(this.y+this.vy+c.height)%c.height;}
+}
+class Bullet{
+  constructor(x,y,a){this.x=x;this.y=y;this.a=a;this.t=60;}
+  draw(){ctx.beginPath();ctx.arc(this.x,this.y,2,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();}
+  update(){this.x=(this.x+Math.cos(this.a)*6+c.width)%c.width; this.y=(this.y+Math.sin(this.a)*6+c.height)%c.height; this.t--;}
+}
+let ship=new Ship(), asts=[], bullets=[], lives=3, score=0, keys={};
+
+function spawn(n=5){
+  asts=[];
+  for(let i=0;i<n;i++){
+    let x=Math.random()*c.width, y=Math.random()*c.height;
+    if(Math.hypot(x-ship.x,y-ship.y)<100){i--;continue;}
+    asts.push(new Ast(x,y,30+Math.random()*25));
+  }
+}
+function explode(i){
+  const a=asts[i]; score+=10;
+  asts.splice(i,1);
+  if(a.r>16){
+    asts.push(new Ast(a.x,a.y,a.r/1.6));
+    asts.push(new Ast(a.x,a.y,a.r/1.6));
+  }
+}
+function loop(){
+  // input
+  if(keys['ArrowLeft']) ship.a-=0.06;
+  if(keys['ArrowRight']) ship.a+=0.06;
+  if(keys['ArrowUp']) ship.thrust();
+
+  // update
+  ship.update();
+  asts.forEach(a=>a.update());
+  bullets.forEach((b,bi)=>{b.update(); if(b.t<=0) bullets.splice(bi,1);});
+
+  // collisions: bullets vs asteroids
+  bullets.forEach((b,bi)=>{
+    asts.forEach((a,ai)=>{
+      if(Math.hypot(b.x-a.x,b.y-a.y) < a.r){ bullets.splice(bi,1); explode(ai); }
+    });
+  });
+
+  // ship vs asteroids
+  asts.forEach(a=>{
+    if(Math.hypot(ship.x-a.x,ship.y-a.y) < a.r+10){
+      lives--; document.getElementById('lives').textContent=lives;
+      ship=new Ship();
+      if(lives<=0){ alert('Game Over! Score: '+score); lives=3; score=0; spawn(5); }
+    }
+  });
+
+  // redraw
+  ctx.clearRect(0,0,c.width,c.height);
+  ship.draw(); asts.forEach(a=>a.draw()); bullets.forEach(b=>b.draw());
+  document.getElementById('score').textContent=score;
+
+  // wave clear
+  if(asts.length===0){ spawn(6); }
+
+  requestAnimationFrame(loop);
+}
+document.addEventListener('keydown',e=>{
+  keys[e.key]=true;
+  if(e.key===' ') { const b=ship.fire(); if(b) bullets.push(b); }
+});
+document.addEventListener('keyup',e=>{ keys[e.key]=false; });
+spawn(5); loop();
+</script>
+</body>
+</html>
