@@ -174,57 +174,78 @@
   }
 
   // ======= UPDATE PAC (fixed "stuck on walls") =======
-  function updatePac(dt){
-    // queued turn at grid centers
-    if(gridAlign(pac.x) && gridAlign(pac.y) && pac.nextDir){
-      const nx = Math.round(pac.x) + pac.nextDir.dx;
-      const ny = Math.round(pac.y) + pac.nextDir.dy;
-      if(!isWall(nx,ny) && !isGate(nx,ny)){
-        pac.dx = pac.nextDir.dx;
-        pac.dy = pac.nextDir.dy;
-        pac.nextDir = null;
-      }
-    }
-
-    // movement (scale dt to ~frames)
-    let nx = pac.x + pac.dx * pac.speed * (dt/16);
-    let ny = pac.y + pac.dy * pac.speed * (dt/16);
-
-    // tunnel wrap
-    if(nx < 0) nx = COLS-1;
-    if(nx > COLS-1) nx = 0;
-
-    // only apply if not blocked (do NOT zero dx/dy on block)
-    if(!isWall(Math.round(nx),Math.round(ny)) && !isGate(Math.round(nx),Math.round(ny))){
-      pac.x = nx; pac.y = ny;
-    }
-
-    // eat pellets
-    const gx = Math.round(pac.x), gy = Math.round(pac.y);
-    if(raw[gy] && raw[gy][gx]===0){ raw[gy][gx]=2; score+=pelletScore; scoreEl.textContent=score; playWaka(); }
-    else if(raw[gy] && raw[gy][gx]===3){ raw[gy][gx]=2; score+=powerScore; scoreEl.textContent=score; play(S.power); frighten(); }
-
-    // mouth anim
-    if(pac.dx || pac.dy){
-      if(pac.open){ pac.mouth+=0.05; if(pac.mouth>=0.3) pac.open=false; }
-      else         { pac.mouth-=0.05; if(pac.mouth<=0)   pac.open=true;  }
-    }
-
-    // level complete
-    if(pelletsRemaining()===0){
-      mode='levelup';
-      overlayText.textContent='LEVEL UP!';
-      setTimeout(()=>{
-        level++;
-        for(let y=0;y<ROWS;y++) for(let x=0;x<COLS;x++){
-          if(raw[y][x]===2 && !isGate(x,y) && !isWall(x,y)) raw[y][x]=0;
-        }
-        resetEntities();
-        overlayText.textContent='READY!';
-        mode='ready';
-      }, 1500);
+  function updatePac(dt) {
+  // queued turn only when aligned to grid
+  if (gridAlign(pac.x) && gridAlign(pac.y) && pac.nextDir) {
+    const nx = Math.round(pac.x) + pac.nextDir.dx;
+    const ny = Math.round(pac.y) + pac.nextDir.dy;
+    if (!isWall(nx, ny) && !isGate(nx, ny)) {
+      pac.dx = pac.nextDir.dx;
+      pac.dy = pac.nextDir.dy;
+      pac.nextDir = null;
     }
   }
+
+  // proposed movement (scaled)
+  let nx = pac.x + pac.dx * pac.speed * (dt / 16);
+  let ny = pac.y + pac.dy * pac.speed * (dt / 16);
+
+  // tunnel wrap
+  if (nx < 0) nx = COLS - 1;
+  if (nx > COLS - 1) nx = 0;
+
+  // only move if valid
+  if (!isWall(Math.round(nx), Math.round(ny)) && !isGate(Math.round(nx), Math.round(ny))) {
+    pac.x = nx;
+    pac.y = ny;
+  }
+  // else: do nothing — keeps current direction
+
+  // eat pellets
+  const gx = Math.round(pac.x), gy = Math.round(pac.y);
+  if (raw[gy] && raw[gy][gx] === 0) {
+    raw[gy][gx] = 2;
+    score += pelletScore;
+    scoreEl.textContent = score;
+    play(S.waka);
+  } else if (raw[gy] && raw[gy][gx] === 3) {
+    raw[gy][gx] = 2;
+    score += powerScore;
+    scoreEl.textContent = score;
+    play(S.power);
+    frighten();
+  }
+
+  // mouth animation
+  if (pac.dx !== 0 || pac.dy !== 0) {
+    if (pac.open) {
+      pac.mouth += 0.05;
+      if (pac.mouth >= 0.3) pac.open = false;
+    } else {
+      pac.mouth -= 0.05;
+      if (pac.mouth <= 0) pac.open = true;
+    }
+  }
+
+  // level complete?
+  if (pelletsRemaining() === 0) {
+    mode = 'levelup';
+    overlayText.textContent = 'LEVEL UP!';
+    setTimeout(() => {
+      level++;
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          if (raw[y][x] === 2 && !isGate(x, y) && !isWall(x, y)) {
+            raw[y][x] = 0;
+          }
+        }
+      }
+      resetEntities();
+      overlayText.textContent = 'READY!';
+      mode = 'ready';
+    }, 1500);
+  }
+}
 
   // ======= GHOST AI =======
   function ghostTargets(g){
