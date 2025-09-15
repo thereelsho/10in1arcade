@@ -3,63 +3,172 @@
 <head>
   <meta charset="UTF-8">
   <title>Pac-Man+</title>
-   <link rel="stylesheet" href="../arcade.css">
+
+  <!-- ✅ Absolute link to your shared CSS -->
+  <link rel="stylesheet" href="https://thereelsho.github.io/10in1arcade/arcade.css"> 
+
   <style>
-    body{background:#000;color:#fff;text-align:center;font-family:Arial;margin:0;padding:10px}
-    canvas{background:#111;display:block;margin:10px auto}
-    .info{margin:6px 0}
+    body { background:#000; color:#fff; text-align:center; font-family:Arial; margin:0; padding:10px }
+    canvas { background:#111; display:block; margin:10px auto; border:2px solid #555 }
+    .hud { margin:6px 0 }
   </style>
 </head>
 <body>
   <h1>Pac-Man+</h1>
-  <div class="info">Lives: <span id="lives">3</span> · Score: <span id="score">0</span></div>
-  <canvas id="game" width="448" height="256"></canvas>
-  <div style="text-align:center;margin-top:10px">
-    <a href="../index.html" class="back-btn">⟵ Back to Arcade</a>
+  <div class="hud">
+    Score: <span id="score">0</span> · 
+    High: <span id="high">0</span> · 
+    Lives: <span id="lives">3</span>
   </div>
+  <canvas id="game" width="672" height="744"></canvas>
+  <a href="../index.html" class="back-btn">⟵ Back to Arcade</a>
+
   <script>
-    const tile=16, rows=16, cols=28;
-    const canvas=document.getElementById('game'), ctx=canvas.getContext('2d');
-    let lives=3, score=0;
-    const maze=[
-"1111111111111111111111111111",
-"1000000000000110000000000001",
-"1011111111100110111111111101",
-"1011111111100110111111111101",
-"1000000000000000000000000001",
-"1011110111111111111011111101",
-"1000000100000100000100000001",
-"1111110110110110110110111111",
-"1000000000110000001100000001",
-"1011110111111111111110111101",
-"1000000100000100000100000001",
-"1111110110110110110110111111",
-"1000000000000000000000000001",
-"1011111111110111111111111101",
-"1000000000000000000000000001",
-"1111111111111111111111111111"
-].map(r=>r.split('').map(n=>+n));
-    let pac={x:14,y:13,dx:0,dy:0};
-    let pellets=new Set();
-    for(let y=0;y<rows;y++){for(let x=0;x<cols;x++){if(maze[y][x]===0)pellets.add(y+','+x)}}
-    const ghosts=[
-      {x:13,y:7,color:'red',dx:1,dy:0},
-      {x:14,y:7,color:'pink',dx:-1,dy:0}
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const tileSize = 24;
+    let score = 0, lives = 3, highScore = parseInt(localStorage.pacmanHigh || "0");
+    document.getElementById("high").textContent = highScore;
+
+    // Map: 1=wall, 0=pellet, 3=power pellet, 2=empty
+    const map = [
+      "1111111111111111111111111",
+      "1030000000110000000000301",
+      "1011111110110111111111011",
+      "1011111110110111111111011",
+      "1000000000000000000000001",
+      "1011110111111111011111011",
+      "1000000100001000100000001",
+      "1111110101111010111111111",
+      "0000010000000000000001000",
+      "1111110110111111011011111",
+      "1000000000110000000000001",
+      "1011111110110111111111011",
+      "1030000000000000000000301",
+      "1111111111111111111111111",
+    ].map(r => r.split("").map(Number));
+
+    const pacman = { x:1,y:1,dx:0,dy:0,nextDir:null,speed:0.1,mouth:0,open:true };
+
+    const ghosts = [
+      { x:12,y:7,dx:0,dy:-1,color:"red",edible:false },
+      { x:13,y:7,dx:0,dy:1,color:"pink",edible:false },
+      { x:11,y:7,dx:1,dy:0,color:"cyan",edible:false },
+      { x:12,y:8,dx:-1,dy:0,color:"orange",edible:false }
     ];
-    function drawMaze(){for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){if(maze[y][x]===1){ctx.fillStyle='blue';ctx.fillRect(x*tile,y*tile,tile,tile);}
-      else if(pellets.has(y+','+x)){ctx.fillStyle='white';ctx.fillRect(x*tile+7,y*tile+7,2,2);}}}
-    function drawPac(){ctx.beginPath();ctx.arc(pac.x*tile+8,pac.y*tile+8,7,0.25*Math.PI,1.75*Math.PI);ctx.lineTo(pac.x*tile+8,pac.y*tile+8);ctx.fillStyle='yellow';ctx.fill();}
-    function drawGhost(g){ctx.fillStyle=g.color;ctx.fillRect(g.x*tile+2,g.y*tile+2,12,12);}
-    function canMove(x,y){return maze[y] && maze[y][x]===0;}
-    function step(){const nx=pac.x+pac.dx, ny=pac.y+pac.dy; if(canMove(nx,ny)){pac.x=nx;pac.y=ny;const key=pac.y+','+pac.x;if(pellets.delete(key)){score+=10;document.getElementById('score').textContent=score; if(pellets.size===0){alert('You win! Score '+score); reset();}}}
-      ghosts.forEach(g=>{let choices=[{dx:Math.sign(pac.x-g.x),dy:0},{dx:0,dy:Math.sign(pac.y-g.y)}]; for(const c of choices){const gx=g.x+c.dx, gy=g.y+c.dy; if(canMove(gx,gy)){g.x=gx;g.y=gy;return;}}});
-      for(const g of ghosts){if(g.x===pac.x && g.y===pac.y){lives--; document.getElementById('lives').textContent=lives; if(lives<=0){alert('Game Over! Score '+score); reset();} else {pac={x:14,y:13,dx:0,dy:0}; return;}}}
+
+    document.addEventListener("keydown", e => {
+      if(e.key==="ArrowUp") pacman.nextDir={dx:0,dy:-1};
+      if(e.key==="ArrowDown") pacman.nextDir={dx:0,dy:1};
+      if(e.key==="ArrowLeft") pacman.nextDir={dx:-1,dy:0};
+      if(e.key==="ArrowRight") pacman.nextDir={dx:1,dy:0};
+    });
+
+    function isWall(x,y){ return map[y] && map[y][x]===1; }
+
+    function updatePacman(){
+      if(Number.isInteger(pacman.x)&&Number.isInteger(pacman.y)&&pacman.nextDir){
+        const nx=pacman.x+pacman.nextDir.dx, ny=pacman.y+pacman.nextDir.dy;
+        if(!isWall(nx,ny)){ pacman.dx=pacman.nextDir.dx; pacman.dy=pacman.nextDir.dy; pacman.nextDir=null; }
+      }
+      const nx=pacman.x+pacman.dx*pacman.speed, ny=pacman.y+pacman.dy*pacman.speed;
+      if(!isWall(Math.round(nx),Math.round(ny))){ pacman.x=nx; pacman.y=ny; }
+      else{ pacman.dx=0; pacman.dy=0; }
+
+      const gx=Math.round(pacman.x), gy=Math.round(pacman.y);
+      if(map[gy]&&map[gy][gx]===0){ map[gy][gx]=2; score+=10; }
+      else if(map[gy]&&map[gy][gx]===3){ map[gy][gx]=2; score+=50; ghosts.forEach(g=>g.edible=true); setTimeout(()=>ghosts.forEach(g=>g.edible=false),6000);}
+      document.getElementById("score").textContent=score;
+
+      // Animate mouth
+      if(pacman.open){ pacman.mouth+=0.05; if(pacman.mouth>=0.25) pacman.open=false; }
+      else{ pacman.mouth-=0.05; if(pacman.mouth<=0) pacman.open=true; }
     }
-    function draw(){ctx.clearRect(0,0,canvas.width,canvas.height); drawMaze(); drawPac(); ghosts.forEach(drawGhost);}
-    function loop(){step(); draw(); requestAnimationFrame(loop);}
-    document.addEventListener('keydown',e=>{const k=e.key; let d={x:0,y:0}; if(k==='ArrowUp')d={x:0,y:-1}; else if(k==='ArrowDown')d={x:0,y:1}; else if(k==='ArrowLeft')d={x:-1,y:0}; else if(k==='ArrowRight')d={x:1,y:0}; const nx=pac.x+d.x, ny=pac.y+d.y; if(canMove(nx,ny)){pac.dx=d.x; pac.dy=d.y;}});
-    function reset(){lives=3;score=0;document.getElementById('score').textContent=0;document.getElementById('lives').textContent=3; pellets.clear(); for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)if(maze[y][x]===0)pellets.add(y+','+x); pac={x:14,y:13,dx:0,dy:0}; ghosts[0].x=13;ghosts[0].y=7;ghosts[1].x=14;ghosts[1].y=7;}
-    reset(); loop();
+
+    function updateGhost(g){
+      if(Number.isInteger(g.x)&&Number.isInteger(g.y)){
+        const choices=[]; [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{
+          const nx=Math.round(g.x)+dx, ny=Math.round(g.y)+dy;
+          if(!isWall(nx,ny)) choices.push({dx,dy});
+        });
+        if(choices.length){
+          choices.sort((a,b)=>{
+            const da=Math.abs((g.x+a.dx)-pacman.x)+Math.abs((g.y+a.dy)-pacman.y);
+            const db=Math.abs((g.x+b.dx)-pacman.x)+Math.abs((g.y+b.dy)-pacman.y);
+            return da-db;
+          });
+          g.dx=choices[0].dx; g.dy=choices[0].dy;
+        }
+      }
+      const nx=g.x+g.dx*0.08, ny=g.y+g.dy*0.08;
+      if(!isWall(Math.round(nx),Math.round(ny))){ g.x=nx; g.y=ny; }
+    }
+
+    function checkCollisions(){
+      ghosts.forEach(g=>{
+        if(Math.abs(g.x-pacman.x)<0.5&&Math.abs(g.y-pacman.y)<0.5){
+          if(g.edible){ score+=200; g.x=12; g.y=7; g.dx=0; g.dy=1; g.edible=false; }
+          else{
+            lives--; document.getElementById("lives").textContent=lives;
+            if(lives<=0){
+              if(score>highScore){ localStorage.pacmanHigh=score; highScore=score; }
+              alert("Game Over! Final score: "+score+" · High: "+highScore);
+              location.reload();
+            }
+            pacman.x=1; pacman.y=1; pacman.dx=0; pacman.dy=0;
+          }
+        }
+      });
+      document.getElementById("high").textContent=Math.max(highScore,score);
+    }
+
+    function drawMap(){
+      for(let y=0;y<map.length;y++){
+        for(let x=0;x<map[y].length;x++){
+          if(map[y][x]===1){ ctx.fillStyle="#1a1aff"; ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize); }
+          else if(map[y][x]===0){ ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(x*tileSize+tileSize/2,y*tileSize+tileSize/2,3,0,Math.PI*2); ctx.fill(); }
+          else if(map[y][x]===3){ ctx.fillStyle="#ff0"; ctx.beginPath(); ctx.arc(x*tileSize+tileSize/2,y*tileSize+tileSize/2,6,0,Math.PI*2); ctx.fill(); }
+        }
+      }
+    }
+
+    function drawPacman(){
+      ctx.fillStyle="yellow";
+      ctx.beginPath();
+      const angle=Math.atan2(pacman.dy,pacman.dx)||0;
+      ctx.arc(pacman.x*tileSize+tileSize/2,pacman.y*tileSize+tileSize/2,tileSize/2-2,
+              angle+pacman.mouth, angle+2*Math.PI-pacman.mouth);
+      ctx.lineTo(pacman.x*tileSize+tileSize/2,pacman.y*tileSize+tileSize/2);
+      ctx.fill();
+    }
+
+    function drawGhost(g){
+      const px=g.x*tileSize+tileSize/2, py=g.y*tileSize+tileSize/2;
+      ctx.fillStyle=g.edible?"blue":g.color;
+      ctx.beginPath();
+      ctx.arc(px,py,tileSize/2-2,Math.PI,0);
+      ctx.lineTo(px+tileSize/2-2,py+tileSize/2-2);
+      ctx.lineTo(px-tileSize/2+2,py+tileSize/2-2);
+      ctx.closePath(); ctx.fill();
+
+      // Eyes
+      const eyeDx = pacman.x-g.x, eyeDy = pacman.y-g.y;
+      const len=Math.hypot(eyeDx,eyeDy)||1;
+      const ex= (eyeDx/len)*3, ey=(eyeDy/len)*3;
+      ctx.fillStyle="#fff";
+      ctx.beginPath(); ctx.arc(px-5,py,5,0,Math.PI*2); ctx.arc(px+5,py,5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle="#000";
+      ctx.beginPath(); ctx.arc(px-5+ex,py+ey,2,0,Math.PI*2); ctx.arc(px+5+ex,py+ey,2,0,Math.PI*2); ctx.fill();
+    }
+
+    function loop(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      drawMap(); updatePacman();
+      ghosts.forEach(g=>{ updateGhost(g); drawGhost(g); });
+      drawPacman(); checkCollisions();
+      requestAnimationFrame(loop);
+    }
+    loop();
   </script>
 </body>
 </html>
