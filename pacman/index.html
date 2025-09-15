@@ -162,14 +162,14 @@ const raw = [
   function gridAlign(v){ return Math.abs(v-Math.round(v))<0.01; }
 
   function resetEntities(){
-    pac.x=14; pac.y=23; pac.dx=0; pac.dy=0; pac.nextDir=null;
-    ghosts = [
-      makeGhost('blinky', 14, 11, 'red'),
-      makeGhost('pinky',  13, 14, 'pink'),
-      makeGhost('inky',   14, 14, 'cyan'),
-      makeGhost('clyde',  15, 14, 'orange'),
-    ];
-  }
+  pac.x=14; pac.y=17; pac.dx=0; pac.dy=0; pac.nextDir=null;
+  ghosts=[
+    makeGhost("blinky",14,11,"red"),   // above house
+    makeGhost("pinky",13,12,"pink"),   // inside
+    makeGhost("inky",14,12,"cyan"),    // inside
+    makeGhost("clyde",15,12,"orange")  // inside
+  ];
+}
 
   function startRound(){
     mode='play';
