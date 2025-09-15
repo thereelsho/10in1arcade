@@ -1,0 +1,24 @@
+/* Arcade Shared Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Neon Back Button */
+.back-btn {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 10px 18px;
+  background: #111;
+  border: 2px solid #ff2d75;
+  color: #ff2d75;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8em;
+  text-decoration: none;
+  border-radius: 8px;
+  text-shadow: 0 0 6px #ff2d75, 0 0 12px #ff2d75;
+  box-shadow: 0 0 12px rgba(255,45,117,.5);
+  transition: transform .15s, box-shadow .15s;
+}
+.back-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(255,45,117,.9);
+}
