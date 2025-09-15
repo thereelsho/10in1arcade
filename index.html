@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Arcade Machine</title>
+
+  <!-- ✅ Proper Google Font link (works on GitHub Pages) -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Press Start 2P', cursive;
+      background: radial-gradient(circle at top, #111 0%, #000 100%);
+      color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      width: 90%;
+      max-width: 1000px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      color: #ff2d75;
+      text-shadow: 0 0 10px #ff2d75, 0 0 20px #ff2d75, 0 0 40px #ff2d75;
+      margin-bottom: 30px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: #111;
+      border: 2px solid #ff2d75;
+      border-radius: 12px;
+      padding: 30px 10px;
+      text-decoration: none;
+      color: #f0f0f0;
+      box-shadow: 0 0 15px rgba(255, 45, 117, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 25px rgba(255, 45, 117, 0.8);
+      background: #1a1a1a;
+    }
+
+    .card span {
+      display: block;
+      margin-top: 10px;
+      font-size: 0.7em;
+      color: #ffcc00;
+      text-shadow: 0 0 5px #ffcc00;
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 0.6em;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 Arcade Machine 🎮</h1>
+    <div class="grid">
+      <a class="card" href="tetris/index.html">Tetris <span>Falling Blocks</span></a>
+      <a class="card" href="snake/index.html">Snake <span>Eat & Grow</span></a>
+      <a class="card" href="pacman/index.html">Pac-Man <span>Classic Maze</span></a>
+      <a class="card" href="pong/index.html">Pong <span>Retro Tennis</span></a>
+      <a class="card" href="breakout/index.html">Breakout <span>Smash Bricks</span></a>
+      <a class="card" href="flappybird/index.html">Flappy Bird <span>Tap to Fly</span></a>
+      <a class="card" href="minesweeper/index.html">Minesweeper <span>Find Bombs</span></a>
+      <a class="card" href="2048/index.html">2048 <span>Number Puzzle</span></a>
+      <a class="card" href="asteroids/index.html">Asteroids <span>Shoot Rocks</span></a>
+      <a class="card" href="spaceinvaders/index.html">Space Invaders <span>Alien Attack</span></a>
+    </div>
+    <footer>© 2025 Arcade Machine — Optimized for Second Life media-on-a-prim</footer>
+  </div>
+</body>
+</html>
