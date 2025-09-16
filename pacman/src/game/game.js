@@ -160,7 +160,9 @@ let drawScore = () => {
         "Score: " + score,
         20,
         oneBlockSize * (map.length + 1) + 15
+    );
 };
+
 
 let draw = () => {
     if (gameStarted) {
