@@ -25,6 +25,7 @@ let fps = 30;
 let pacman;
 let oneBlockSize = 20;
 let score = 0;
+let highScore = localStorage.getItem("pacmanHighScore") || 0;
 let ghosts = [];
 let wallSpaceWidth = oneBlockSize / 1.6;
 let wallOffset = (oneBlockSize - wallSpaceWidth) / 2;
@@ -160,7 +161,10 @@ let drawScore = () => {
         "Score: " + score,
         20,
         oneBlockSize * (map.length + 1) + 15
-    );
+   ctx.fillStyle = "yellow";
+ctx.font = "16px Emulogic, monospace";
+ctx.fillText("SCORE: " + score, 20, 20);
+ctx.fillText("HIGH: " + highScore, 400, 20);
 };
 
 let draw = () => {
@@ -258,6 +262,14 @@ let startGame = () => {
 };
 
 let restartGame = () => {
+    function updateHighScore() {
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem("pacmanHighScore", highScore);
+  }
+}
+
+    updateHighScore();
     clearInterval(gameInterval);
     score = 0;
     lives = 3;
