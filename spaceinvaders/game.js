@@ -1171,7 +1171,7 @@ SpaceInvaders.WelcomeState = function (game) {
 
   // initialize the multiplayer text.
   multiPlayerText = new SpaceInvaders.TextEntity(game);
-  multiPlayerText.setText("PRESS [2] IF SOMEONE ACTUALLY LIKES YOU");
+  multiPlayerText.setText("PRESS [2] IF YOU'RE NOT");
   multiPlayerText.setAlign("center");
   multiPlayerText.setX(playText.getX());
   multiPlayerText.setY(singlePlayerText.getY() + 50);
