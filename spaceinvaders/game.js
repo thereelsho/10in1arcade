@@ -1153,7 +1153,7 @@ SpaceInvaders.WelcomeState = function (game) {
 
   // initialize the game name text.
   nameText = new SpaceInvaders.TextEntity(game);
-  nameText.setText("SHO'S SPACE INVADERS");
+  nameText.setText("V'S SPACE INVADERS");
   nameText.setAlign("center");
   nameText.setFillStyle("#20ff20");
   nameText.setX(playText.getX());
@@ -1161,7 +1161,7 @@ SpaceInvaders.WelcomeState = function (game) {
 
   // initialize the single player text.
   singlePlayerText = new SpaceInvaders.TextEntity(game);
-  singlePlayerText.setText("PRESS [1] FOR A 1 PLAYER GAME");
+  singlePlayerText.setText("PRESS [1] IF YOURE LONELY");
   singlePlayerText.setAlign("center");
   singlePlayerText.setX(playText.getX());
   singlePlayerText.setY(nameText.getY() + 75);
@@ -1171,7 +1171,7 @@ SpaceInvaders.WelcomeState = function (game) {
 
   // initialize the multiplayer text.
   multiPlayerText = new SpaceInvaders.TextEntity(game);
-  multiPlayerText.setText("PRESS [2] FOR A 2 PLAYER GAME");
+  multiPlayerText.setText("PRESS [2] IF SOMEONE ACTUALLY LIKES YOU");
   multiPlayerText.setAlign("center");
   multiPlayerText.setX(playText.getX());
   multiPlayerText.setY(singlePlayerText.getY() + 50);
