@@ -1153,7 +1153,7 @@ SpaceInvaders.WelcomeState = function (game) {
 
   // initialize the game name text.
   nameText = new SpaceInvaders.TextEntity(game);
-  nameText.setText("HTML5 SPACE INVADERS");
+  nameText.setText("SHO'S SPACE INVADERS");
   nameText.setAlign("center");
   nameText.setFillStyle("#20ff20");
   nameText.setX(playText.getX());
