@@ -3,9 +3,6 @@ A HTML5 implementation of the classic Space Invaders game.
 
 This implementation supports one and two players.
 
-The game is playable in the URL: https://toivjon.github.io/html5-space-invaders/
-
-Development blog entry: https://toivjon.wordpress.com/2017/09/17/html5-space-invaders/
 
 ## Scenes
 Game is split into following scenes:
