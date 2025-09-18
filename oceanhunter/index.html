@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Ocean Hunter+</title>
+  <link rel="stylesheet" href="../arcade.css"><!-- your global arcade theme if you have one -->
+  <link rel="stylesheet" href="ocean.css">
+  <style>
+    /* Safety if arcade.css missing */
+    body{margin:0;background:#00131c;color:#fff;font-family:Arial,Helvetica,sans-serif}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="back" href="../index.html">← Back to Arcade</a>
+    <div class="hud">
+      <span id="score">Score: 0</span>
+      <span id="lives">Lives: 3</span>
+      <span id="ammo">Ammo: ∞</span>
+      <span id="wave">Wave: 1</span>
+    </div>
+  </header>
+
+  <main id="container">
+    <canvas id="game" width="960" height="540"></canvas>
+    <div id="overlay">
+      <h1>Ocean Hunter+</h1>
+      <p>Move the reticle with your mouse or finger. Tap/click to fire.</p>
+      <button id="startBtn">Start Dive</button>
+    </div>
+  </main>
+
+  <footer class="credits">© You — original code & assets. Inspired by underwater rail shooters.</footer>
+
+  <script src="game.js"></script>
+</body>
+</html>
