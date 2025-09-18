@@ -1,0 +1,24 @@
+{
+  "levels": [
+    {
+      "name": "Coral Run",
+      "length": 60,
+      "camera": {
+        "speed": 6,
+        "spline": [
+          {"x":0,"y":0}, {"x":2000,"y":-100}, {"x":4000,"y":50}, {"x":6000,"y":0}
+        ]
+      },
+      "spawns": [
+        {"t":2,"type":"fish","x":0.2,"y":0.3,"hp":1,"score":50},
+        {"t":3,"type":"fish","x":0.7,"y":0.25,"hp":1,"score":50},
+        {"t":6,"type":"eel","x":0.5,"y":0.7,"hp":2,"score":100,"vx":-50},
+        {"t":12,"type":"puffer","x":0.3,"y":0.5,"hp":3,"score":150},
+        {"t":30,"type":"boss","x":0.5,"y":0.5,"hp":80,"score":3000,"weakpoints":[
+          {"dx":-80,"dy":-100,"hp":6,"score":300},
+          {"dx":80,"dy":-100,"hp":6,"score":300}
+        ]}
+      ]
+    }
+  ]
+}
