@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>NES (EmulatorJS)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html,body{height:100%;margin:0;background:#000;overflow:hidden}
+    #game{width:100vw;height:100vh}
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+
+  <script>
+    // Where to mount the emulator UI:
+    window.EJS_player = '#game';
+
+    // Pick a system (cores list includes: 'nes','snes','gba','genesis','mame2003', etc.)
+    window.EJS_core = 'nes';
+
+    // Path to your ROM (must be same-origin or CORS-approved):
+    window.EJS_gameUrl = 'roms/nestest.nes';
+
+    // Use the EmulatorJS CDN for the data + loader (simplest setup):
+    window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+
+    // SL-friendly tweaks:
+    window.EJS_backgroundColor = '#000';
+    window.EJS_startOnLoaded = false;    // avoids freezing before first click in SL
+    window.EJS_fullscreenOnLoaded = false; // SL media dislikes auto-fullscreen
+    window.EJS_controlScheme = 'nes';    // ensures virtual gamepad layout is available
+    window.EJS_volume = 0.7;
+    // Tip: If you need a BIOS (e.g., for some systems), set window.EJS_biosUrl = 'bios/whatever.bin';
+  </script>
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+</body>
+</html>
